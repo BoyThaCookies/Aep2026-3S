@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoHealth Monitor — Saúde Ambiental em Tempo Real</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f7f4;
+    --bg2: #ffffff;
+    --surface: #e8f5ef;
+    --border: #c8e6d8;
+    --primary: #1a7a4a;
+    --primary-light: #2da866;
+    --primary-dark: #145f39;
+    --accent: #22c55e;
+    --accent2: #0ea5e9;
+    --text: #1a2e24;
+    --muted: #4d7a61;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(26,122,74,0.10);
+    --shadow-lg: 0 8px 40px rgba(26,122,74,0.16);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2.5rem;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 12px rgba(26,122,74,0.07);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  .nav-logo .leaf {
+    font-size: 1.3rem;
+  }
+
+  .ods-badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    background: rgba(26,122,74,0.1);
+    color: var(--primary);
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.88rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--primary); }
+
+  .nav-cta {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .nav-cta:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #e8f5ef 0%, #f0f7f4 40%, #dff0e8 100%);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; left: -120px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(34,197,94,0.15) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(14,165,233,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .hero-icon {
+    font-size: 4rem;
+    margin-bottom: 1.2rem;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(26,122,74,0.1);
+    border: 1px solid rgba(26,122,74,0.2);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 5.5vw, 4rem);
+    font-weight: 800;
+    color: var(--primary-dark);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.2rem;
+    max-width: 720px;
+  }
+
+  h1 span { color: var(--primary-light); }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.75;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 3.5rem;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--primary);
+    color: #fff;
+    padding: 0.9rem 2.2rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(26,122,74,0.3);
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26,122,74,0.35);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    color: var(--primary);
+    padding: 0.9rem 2.2rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--primary);
+    background: var(--surface);
+  }
+
+  /* MINI DASHBOARD PREVIEW */
+  .dashboard-preview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    max-width: 860px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 720px) {
+    .dashboard-preview { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .preview-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .preview-card:nth-child(1) { animation-delay: 0.1s; }
+  .preview-card:nth-child(2) { animation-delay: 0.2s; }
+  .preview-card:nth-child(3) { animation-delay: 0.3s; }
+  .preview-card:nth-child(4) { animation-delay: 0.4s; }
+
+  .preview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .preview-icon { font-size: 1.8rem; margin-bottom: 0.6rem; display: block; }
+
+  .preview-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+  }
+
+  .preview-value {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    line-height: 1;
+  }
+
+  .preview-value small {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-weight: 400;
+  }
+
+  .preview-status {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+  }
+
+  .status-good { background: rgba(34,197,94,0.12); color: #15803d; }
+  .status-warn { background: rgba(245,158,11,0.12); color: #b45309; }
+  .status-info { background: rgba(14,165,233,0.12); color: #0369a1; }
+  .status-alert { background: rgba(239,68,68,0.12); color: #b91c1c; }
+
+  /* STATS */
+  .stats-bar {
+    background: var(--primary);
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-around;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-item { text-align: center; }
+
+  .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    font-family: var(--mono);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.75);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* SECTIONS */
+  section {
+    padding: 5rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+    background: rgba(26,122,74,0.08);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+  }
+
+  h2 {
+    font-size: clamp(1.7rem, 3vw, 2.5rem);
+    font-weight: 800;
+    color: var(--primary-dark);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 0.8rem;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 520px;
+    margin-bottom: 3rem;
+    line-height: 1.75;
+  }
+
+  /* INDICATORS */
+  .ind-bg {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 5rem 2rem;
+  }
+
+  .ind-inner { max-width: 1100px; margin: 0 auto; }
+
+  .indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+
+  .indicator-card {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 1.5rem;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  }
+
+  .indicator-card:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .ind-icon { font-size: 2.2rem; margin-bottom: 1rem; display: block; }
+  .ind-title { font-size: 1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem; }
+  .ind-desc { font-size: 0.84rem; color: var(--muted); line-height: 1.65; }
+
+  .ind-meter {
+    margin-top: 1.2rem;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .ind-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.2s ease;
+  }
+
+  .ind-range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+    font-family: var(--mono);
+  }
+
+  /* FEATURES */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.8rem;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 3px;
+    width: 0;
+    background: var(--primary);
+    transition: width 0.4s;
+    border-radius: 0 0 2px 2px;
+  }
+
+  .feature-card:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+  }
+
+  .feature-card:hover::before { width: 100%; }
+
+  .feature-icon { font-size: 1.8rem; margin-bottom: 1rem; display: block; }
+  .feature-title { font-size: 1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem; }
+  .feature-desc { font-size: 0.84rem; color: var(--muted); line-height: 1.65; }
+
+  /* AUDIENCE */
+  .aud-bg {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 5rem 2rem;
+  }
+
+  .aud-inner { max-width: 1100px; margin: 0 auto; }
+
+  .audience-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2.5rem;
+  }
+
+  @media (max-width: 700px) { .audience-grid { grid-template-columns: 1fr; } }
+
+  .audience-card {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.2rem;
+    box-shadow: var(--shadow);
+  }
+
+  .audience-label {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 1.2rem;
+  }
+
+  .pop-label { background: rgba(34,197,94,0.12); color: #15803d; }
+  .mgr-label { background: rgba(14,165,233,0.12); color: #0369a1; }
+
+  .audience-title { font-size: 1.2rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem; }
+
+  .audience-list { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+
+  .audience-list li {
+    font-size: 0.88rem;
+    color: var(--muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    line-height: 1.5;
+  }
+
+  .audience-list li::before {
+    content: '✓';
+    color: var(--primary);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ODS */
+  .ods-banner {
+    background: var(--primary-dark);
+    padding: 2rem 3rem;
+    text-align: center;
+    color: #fff;
+  }
+
+  .ods-banner p {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    max-width: 600px;
+    margin: 0.5rem auto 0;
+    line-height: 1.6;
+  }
+
+  .ods-title {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+  }
+
+  .ods-pill {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    margin-bottom: 0.6rem;
+  }
+
+  /* CTA */
+  .cta-section {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: linear-gradient(160deg, #e8f5ef, #f0f7f4);
+    border-top: 1px solid var(--border);
+  }
+
+  .cta-section h2 { margin-bottom: 1rem; }
+
+  .cta-section .section-desc {
+    max-width: 480px;
+    margin: 0 auto 2.5rem;
+  }
+
+  /* FOOTER */
+  footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.95rem;
+  }
+
+  .footer-info {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* ANIMATIONS */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { animation: fadeUp 0.7s ease both; }
+  .fade-in-1 { animation: fadeUp 0.7s 0.1s ease both; }
+  .fade-in-2 { animation: fadeUp 0.7s 0.2s ease both; }
+  .fade-in-3 { animation: fadeUp 0.7s 0.3s ease both; }
+  .fade-in-4 { animation: fadeUp 0.7s 0.4s ease both; }
+
+  @media (max-width: 860px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section, .ind-bg, .aud-bg { padding: 3.5rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="leaf">🌱</span>
+    EcoHealth Monitor
+  </a>
+  <ul class="nav-links">
+    <li><a href="#indicadores">Indicadores</a></li>
+    <li><a href="#funcionalidades">Funcionalidades</a></li>
+    <li><a href="#publico">Público</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:0.8rem;">
+    <span class="ods-badge">ODS 3 — ONU</span>
+    <a href="https://micaelmflima.github.io/aep-esoft3s-n-b-/" target="_blank" class="nav-cta">Acessar ▶</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-icon">🌱</div>
+
+  <div class="hero-tag fade-in">
+    <span class="live-dot"></span>
+    Monitoramento em tempo real
+  </div>
+
+  <h1 class="fade-in-1">
+    Saúde ambiental<br>
+    <span>para toda a população</span>
+  </h1>
+
+  <p class="hero-desc fade-in-2">
+    Uma plataforma web que monitora indicadores ambientais e de saúde pública em tempo real — qualidade do ar, temperatura, umidade e alertas de risco sanitário. Alinhada à <strong>ODS 3 da ONU</strong>.
+  </p>
+
+  <div class="hero-actions fade-in-3">
+    <a href="https://micaelmflima.github.io/aep-esoft3s-n-b-/" target="_blank" class="btn-primary">
+      ▶ Acessar a plataforma
+    </a>
+    <a href="#indicadores" class="btn-secondary">
+      Ver indicadores →
+    </a>
+  </div>
+
+  <!-- MINI DASHBOARD -->
+  <div class="dashboard-preview">
+    <div class="preview-card">
+      <span class="preview-icon">🌡️</span>
+      <div class="preview-label">Temperatura</div>
+      <div class="preview-value">28 <small>°C</small></div>
+      <span class="preview-status status-warn">Moderada</span>
+    </div>
+    <div class="preview-card">
+      <span class="preview-icon">💧</span>
+      <div class="preview-label">Umidade</div>
+      <div class="preview-value">65 <small>%</small></div>
+      <span class="preview-status status-good">Confortável</span>
+    </div>
+    <div class="preview-card">
+      <span class="preview-icon">🌫️</span>
+      <div class="preview-label">Qualidade do Ar</div>
+      <div class="preview-value">42 <small>IQA</small></div>
+      <span class="preview-status status-good">Boa</span>
+    </div>
+    <div class="preview-card">
+      <span class="preview-icon">🚨</span>
+      <div class="preview-label">Índice de Risco</div>
+      <div class="preview-value">1 <small>alerta</small></div>
+      <span class="preview-status status-alert">UV Elevado</span>
+    </div>
+  </div>
+</div>
+
+<!-- ODS BANNER -->
+<div class="ods-banner">
+  <div class="ods-pill">ODS 3 — Saúde e Bem-Estar</div>
+  <div class="ods-title">Projeto alinhado aos Objetivos de Desenvolvimento Sustentável da ONU</div>
+  <p>Garantir uma vida saudável e promover o bem-estar para todos, em todas as idades — por meio de informação ambiental acessível e em tempo real.</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-number">24/7</span>
+    <span class="stat-label">Monitoramento contínuo</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">4+</span>
+    <span class="stat-label">Indicadores monitorados</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">&lt;1s</span>
+    <span class="stat-label">Atualização em tempo real</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">100%</span>
+    <span class="stat-label">Acesso público gratuito</span>
+  </div>
+</div>
+
+<!-- INDICATORS -->
+<div class="ind-bg" id="indicadores">
+  <div class="ind-inner">
+    <div class="section-tag">🌿 Indicadores monitorados</div>
+    <h2>O que a plataforma monitora</h2>
+    <p class="section-desc">Dados coletados continuamente e integrados a fontes oficiais de saúde pública.</p>
+
+    <div class="indicators-grid">
+      <div class="indicator-card">
+        <span class="ind-icon">🌫️</span>
+        <div class="ind-title">Qualidade do Ar</div>
+        <p class="ind-desc">Índice IQAr com medição de partículas PM2.5, PM10, ozônio e monóxido de carbono em tempo real.</p>
+        <div class="ind-meter"><div class="ind-fill" style="width:40%;background:#22c55e;"></div></div>
+        <div class="ind-range"><span>Boa</span><span>Péssima</span></div>
+      </div>
+
+      <div class="indicator-card">
+        <span class="ind-icon">🌡️</span>
+        <div class="ind-title">Temperatura</div>
+        <p class="ind-desc">Temperatura ambiente com histórico horário, médias diárias e alertas de ondas de calor.</p>
+        <div class="ind-meter"><div class="ind-fill" style="width:60%;background:#f59e0b;"></div></div>
+        <div class="ind-range"><span>Frio</span><span>Extremo</span></div>
+      </div>
+
+      <div class="indicator-card">
+        <span class="ind-icon">💧</span>
+        <div class="ind-title">Umidade Relativa</div>
+        <p class="ind-desc">Monitoramento da umidade com indicação de conforto térmico e riscos respiratórios.</p>
+        <div class="ind-meter"><div class="ind-fill" style="width:65%;background:#0ea5e9;"></div></div>
+        <div class="ind-range"><span>Seco</span><span>Saturado</span></div>
+      </div>
+
+      <div class="indicator-card">
+        <span class="ind-icon">🚨</span>
+        <div class="ind-title">Alertas Sanitários</div>
+        <p class="ind-desc">Notificações automáticas sobre surtos de doenças, riscos à saúde e recomendações oficiais.</p>
+        <div class="ind-meter"><div class="ind-fill" style="width:25%;background:#ef4444;"></div></div>
+        <div class="ind-range"><span>Normal</span><span>Crítico</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="funcionalidades">
+  <div class="section-tag">⚙️ Funcionalidades</div>
+  <h2>Uma plataforma completa</h2>
+  <p class="section-desc">Intuitiva para o cidadão e poderosa para o gestor público.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">📊</span>
+      <div class="feature-title">Dashboard em Tempo Real</div>
+      <p class="feature-desc">Visualização clara de todos os indicadores com gráficos históricos, tendências e comparativos entre regiões.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">⚠️</span>
+      <div class="feature-title">Fila de Alertas (FIFO)</div>
+      <p class="feature-desc">Sistema de fila de alertas sanitários onde o mais antigo é sempre resolvido primeiro, garantindo priorização correta.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📡</span>
+      <div class="feature-title">Dados Reais e Simulados</div>
+      <p class="feature-desc">Busque dados reais de APIs climáticas ou simule cenários para testar respostas de emergência sanitária.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🗺️</span>
+      <div class="feature-title">Mapa de Monitoramento</div>
+      <p class="feature-desc">Visualize geograficamente a distribuição dos indicadores ambientais por bairro ou região.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📱</span>
+      <div class="feature-title">Acesso Universal</div>
+      <p class="feature-desc">Interface responsiva acessível pelo celular, tablet ou computador — sem instalação necessária.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📂</span>
+      <div class="feature-title">Histórico do Dia</div>
+      <p class="feature-desc">Registro completo de todos os eventos e variações ambientais, promovendo transparência e rastreabilidade.</p>
+    </div>
+  </div>
+</section>
+
+<!-- AUDIENCE -->
+<div class="aud-bg" id="publico">
+  <div class="aud-inner">
+    <div class="section-tag">👥 Para quem é</div>
+    <h2>Feito para a sociedade</h2>
+    <p class="section-desc">Duas perspectivas, uma única plataforma integrada de informação ambiental.</p>
+
+    <div class="audience-grid">
+      <div class="audience-card">
+        <span class="audience-label pop-label">👥 População</span>
+        <h3 class="audience-title">Para o cidadão</h3>
+        <ul class="audience-list">
+          <li>Consulte a qualidade do ar no seu bairro antes de sair</li>
+          <li>Receba alertas de risco sanitário para se proteger</li>
+          <li>Acompanhe temperatura e umidade em tempo real</li>
+          <li>Tome decisões informadas sobre atividades ao ar livre</li>
+          <li>Acesse o histórico ambiental da sua cidade</li>
+        </ul>
+      </div>
+
+      <div class="audience-card">
+        <span class="audience-label mgr-label">🏛️ Gestores Públicos</span>
+        <h3 class="audience-title">Para a gestão pública</h3>
+        <ul class="audience-list">
+          <li>Monitore indicadores em múltiplos pontos simultaneamente</li>
+          <li>Emita alertas sanitários com cobertura imediata</li>
+          <li>Acesse relatórios detalhados para tomada de decisão</li>
+          <li>Integre com sistemas de vigilância sanitária</li>
+          <li>Cumpra obrigações de transparência e dados abertos</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section" id="cta">
+  <div class="section-tag" style="margin:0 auto 1rem;">🌱 Comece agora</div>
+  <h2>Informação ambiental é um direito</h2>
+  <p class="section-desc">
+    Acesse gratuitamente e em tempo real os dados que protegem sua saúde e a da sua família.
+  </p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+    <a href="https://micaelmflima.github.io/aep-esoft3s-n-b-/" target="_blank" class="btn-primary">▶ Acessar a plataforma</a>
+    <a href="#indicadores" class="btn-secondary">Conhecer os indicadores</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <span>🌱</span>
+    EcoHealth Monitor
+  </div>
+  <div class="footer-info">
+    Plataforma de Monitoramento Ambiental e Saúde Pública · Projeto Interdisciplinar<br>
+    Alinhado à <strong>ODS 3</strong> da ONU · Acesso público e gratuito
+  </div>
+</footer>
+
+</body>
+</html>
